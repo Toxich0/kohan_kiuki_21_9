@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'widgets/students.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../widgets/tabs_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -12,12 +14,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'University',
+      title: 'Uni',
       theme: ThemeData(
-        primarySwatch: Colors.indigo,
+        primarySwatch: Colors.teal,
         scaffoldBackgroundColor: Colors.grey.shade100,
+        textTheme: GoogleFonts.latoTextTheme(),
+        appBarTheme: AppBarTheme(
+          titleTextStyle: GoogleFonts.lato(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
-      home: const StudentsScreen(),
+      home: const TabsScreen(),
     );
   }
 }

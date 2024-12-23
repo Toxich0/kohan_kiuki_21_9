@@ -1,36 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/student.dart';
+import '../providers/students_provider.dart';
 import 'student_item.dart';
 import 'new_student.dart';
 
-class StudentsScreen extends StatefulWidget {
+class StudentsScreen extends ConsumerWidget {
   const StudentsScreen({super.key});
 
-  @override
-  State<StudentsScreen> createState() => _StudentsScreenState();
-}
-
-class _StudentsScreenState extends State<StudentsScreen> {
-  final List<Student> _students = [
-    Student(
-      id: '1',
-      firstName: 'Олексій',
-      lastName: 'Петров',
-      department: Department.it,
-      grade: 95,
-      gender: Gender.male,
-    ),
-    Student(
-      id: '2',
-      firstName: 'Ірина',
-      lastName: 'Коваленко',
-      department: Department.medical,
-      grade: 88,
-      gender: Gender.female,
-    ),
-  ];
-
-  void showForm({Student? student}) {
+  void _showNewStudentForm(BuildContext context, WidgetRef ref, {Student? student}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -38,93 +16,84 @@ class _StudentsScreenState extends State<StudentsScreen> {
         return NewStudent(
           existingStudent: student,
           onSave: (updatedStudent) {
-            setState(() {
-              if (student != null) {
-                final index = _students.indexWhere((s) => s.id == student.id);
-                _students[index] = updatedStudent;
-              } else {
-                _students.add(updatedStudent);
-              }
-            });
+            final notifier = ref.read(studentsProvider.notifier);
+            if (student != null) {
+              notifier.updateStudent(updatedStudent);
+            } else {
+              notifier.addStudent(updatedStudent);
+            }
           },
         );
       },
     );
   }
 
-  void removeStudent(int index) {
-    final removedStudent = _students[index];
-    setState(() {
-      _students.removeAt(index);
-    });
+  void _deleteStudent(BuildContext context, WidgetRef ref, Student student) {
+    final notifier = ref.read(studentsProvider.notifier);
+    notifier.deleteStudent(student.id);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${removedStudent.firstName} видалено.'),
+        content: Text('${student.firstName} видалено.'),
         action: SnackBarAction(
           label: 'Скасувати',
-          onPressed: () {
-            setState(() {
-              _students.insert(index, removedStudent);
-            });
-          },
+          onPressed: () => notifier.undoStudent(student),
         ),
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final students = ref.watch(studentsProvider);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Студенти'),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
-      ),
       body: ListView.builder(
-        itemCount: _students.length,
+        itemCount: students.length,
         itemBuilder: (context, index) {
+          final student = students[index];
           return Dismissible(
-            key: ValueKey(_students[index].id),
+            key: ValueKey(student.id),
             direction: DismissDirection.endToStart,
             background: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.deepOrange, Colors.amber],
+                  colors: [Colors.orange.shade400, Colors.red.shade700],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
+                borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Row(
+              padding: const EdgeInsets.only(right: 20),
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.delete, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text(
+                  Icon(Icons.delete_forever, color: Colors.white, size: 28),
+                  const SizedBox(width: 10),
+                  const Text(
                     'Видалити',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
                 ],
               ),
             ),
-            onDismissed: (_) => removeStudent(index),
+            onDismissed: (_) => _deleteStudent(context, ref, student),
             child: InkWell(
-              onTap: () => showForm(student: _students[index]),
-              child: StudentItem(student: _students[index]),
+              onTap: () => _showNewStudentForm(context, ref, student: student),
+              child: StudentItem(student: student),
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showForm(),
-        label: const Text('Додати студента'),
-        icon: const Icon(Icons.add_box),
-        backgroundColor: Colors.teal,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showNewStudentForm(context, ref),
+        backgroundColor: Colors.indigo,
+        child: const Icon(Icons.person_add),
       ),
     );
   }

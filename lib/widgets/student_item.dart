@@ -1,99 +1,86 @@
 import 'package:flutter/material.dart';
 import '../models/student.dart';
+import '../models/department.dart';
 
 class StudentItem extends StatelessWidget {
   final Student student;
 
-  const StudentItem({Key? key, required this.student}) : super(key: key);
+  const StudentItem({super.key, required this.student});
 
   @override
   Widget build(BuildContext context) {
     final backgroundColor = student.gender == Gender.male
-        ? Colors.blue.shade100
-        : Colors.pink.shade100;
+        ? Colors.lightBlue.shade50
+        : Colors.pink.shade50;
     final borderColor = student.gender == Gender.male
-        ? Colors.blue.shade700
-        : Colors.pink.shade700;
+        ? Colors.indigo
+        : Colors.deepOrangeAccent;
+    final textColor = student.gender == Gender.male
+        ? Colors.indigo
+        : Colors.deepOrange;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          left: BorderSide(color: borderColor, width: 5),
+        ),
         boxShadow: [
           BoxShadow(
-            color: borderColor.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(2, 4),
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(2, 3),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${student.firstName} ${student.lastName}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: borderColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _departmentToString(student.department),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: borderColor.withOpacity(0.8),
-                  ),
-                ),
-              ],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              student.department.icon,
+              color: textColor,
+              size: 36,
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${student.grade}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: borderColor,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${student.firstName} ${student.lastName}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Icon(
-                  departmentIcons[student.department],
-                  size: 24,
-                  color: borderColor.withOpacity(0.8),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    student.department.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      color: textColor.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text(
+              '${student.grade}',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  String _departmentToString(Department department) {
-    switch (department) {
-      case Department.finance:
-        return 'Фінанси';
-      case Department.law:
-        return 'Юриспруденція';
-      case Department.it:
-        return 'ІТ';
-      case Department.medical:
-        return 'Медицина';
-      default:
-        return '';
-    }
   }
 }

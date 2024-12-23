@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/student.dart';
+import '../models/department.dart';
 
 class NewStudent extends StatefulWidget {
   final Student? existingStudent;
@@ -53,56 +54,66 @@ class _NewStudentState extends State<NewStudent> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Colors.teal;
+    const primaryColor = Colors.deepPurple;
+    const secondaryTextColor = Colors.deepPurpleAccent;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.deepPurple.shade50],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, -4),
+                color: Colors.grey.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.existingStudent == null
-                    ? 'Додати Студента'
-                    : 'Редагувати Студента',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
+              Center(
+                child: Text(
+                  widget.existingStudent == null
+                      ? 'Додати Студента'
+                      : 'Редагувати Студента',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _buildInputField(
                 controller: _firstNameController,
                 label: 'Ім’я',
                 primaryColor: primaryColor,
+                textColor: secondaryTextColor,
               ),
               const SizedBox(height: 16),
               _buildInputField(
                 controller: _lastNameController,
                 label: 'Прізвище',
                 primaryColor: primaryColor,
+                textColor: secondaryTextColor,
               ),
               const SizedBox(height: 16),
               _buildDropdownField<Department>(
                 value: _selectedDepartment,
                 label: 'Факультет',
-                items: Department.values,
+                items: departments,
                 primaryColor: primaryColor,
-                itemToString: _departmentToString,
+                textColor: secondaryTextColor,
+                itemToString: (department) => department.name,
                 onChanged: (value) => setState(() => _selectedDepartment = value),
               ),
               const SizedBox(height: 16),
@@ -111,40 +122,52 @@ class _NewStudentState extends State<NewStudent> {
                 label: 'Стать',
                 items: Gender.values,
                 primaryColor: primaryColor,
+                textColor: secondaryTextColor,
                 itemToString: (gender) =>
                     gender == Gender.male ? 'Чоловік' : 'Жінка',
                 onChanged: (value) => setState(() => _selectedGender = value),
               ),
               const SizedBox(height: 16),
-              Slider(
-                value: _grade.toDouble(),
-                min: 0,
-                max: 100,
-                divisions: 100,
-                label: 'Оцінка: $_grade',
-                activeColor: primaryColor,
-                onChanged: (value) => setState(() => _grade = value.toInt()),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Оцінка: $_grade',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: secondaryTextColor,
+                    ),
+                  ),
+                  Slider(
+                    value: _grade.toDouble(),
+                    min: 0,
+                    max: 100,
+                    divisions: 100,
+                    activeColor: primaryColor,
+                    onChanged: (value) => setState(() => _grade = value.toInt()),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ElevatedButton.icon(
+                  TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.cancel),
-                    label: const Text('Скасувати'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      foregroundColor: Colors.black,
+                    child: const Text(
+                      'Скасувати',
+                      style: TextStyle(color: Colors.red),
                     ),
                   ),
-                  ElevatedButton.icon(
+                  ElevatedButton(
                     onPressed: _save,
-                    icon: const Icon(Icons.save),
-                    label: const Text('Зберегти'),
+                    child: const Text('Зберегти'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                     ),
                   ),
                 ],
@@ -160,14 +183,16 @@ class _NewStudentState extends State<NewStudent> {
     required TextEditingController controller,
     required String label,
     required Color primaryColor,
+    required Color textColor,
   }) {
     return TextField(
       controller: controller,
+      style: TextStyle(color: textColor),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: primaryColor),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(15),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: primaryColor, width: 2),
@@ -181,40 +206,29 @@ class _NewStudentState extends State<NewStudent> {
     required String label,
     required List<T> items,
     required Color primaryColor,
+    required Color textColor,
     required String Function(T) itemToString,
     required ValueChanged<T?> onChanged,
   }) {
     return DropdownButtonFormField<T>(
       value: value,
+      style: TextStyle(color: textColor),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: primaryColor),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(15),
         ),
       ),
       items: items.map((item) {
         return DropdownMenuItem(
           value: item,
-          child: Text(itemToString(item)),
+          child: Text(
+            itemToString(item),
+            style: TextStyle(color: textColor),
+          ),
         );
       }).toList(),
       onChanged: onChanged,
     );
-  }
-
-  String _departmentToString(Department department) {
-    switch (department) {
-      case Department.finance:
-        return 'Фінанси';
-      case Department.law:
-        return 'Юриспруденція';
-      case Department.it:
-        return 'ІТ';
-      case Department.medical:
-        return 'Медицина';
-      default:
-        return '';
-    }
   }
 }
