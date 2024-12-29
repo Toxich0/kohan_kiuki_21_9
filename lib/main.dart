@@ -4,11 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../widgets/tabs_screen.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: OwnApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class OwnApp extends StatelessWidget {
+  const OwnApp({super.key});
 
   @override
   Widget build(BuildContext context) {

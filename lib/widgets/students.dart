@@ -8,50 +8,63 @@ import 'new_student.dart';
 class StudentsScreen extends ConsumerWidget {
   const StudentsScreen({super.key});
 
-  void _showNewStudentForm(BuildContext context, WidgetRef ref, {Student? student}) {
+  void _showNewStudentForm(BuildContext context, WidgetRef ref, {int? index}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (_) {
-        return NewStudent(
-          existingStudent: student,
-          onSave: (updatedStudent) {
-            final notifier = ref.read(studentsProvider.notifier);
-            if (student != null) {
-              notifier.updateStudent(updatedStudent);
-            } else {
-              notifier.addStudent(updatedStudent);
-            }
-          },
-        );
+        return NewStudent(studentIndex: index,);
       },
     );
   }
 
-  void _deleteStudent(BuildContext context, WidgetRef ref, Student student) {
+  void _deleteStudent(BuildContext context, WidgetRef ref, Student student, int index) {
     final notifier = ref.read(studentsProvider.notifier);
-    notifier.deleteStudent(student.id);
+    final provideScope = ProviderScope.containerOf(context);
+    notifier.deleteStudent(index);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${student.firstName} видалено.'),
         action: SnackBarAction(
           label: 'Скасувати',
-          onPressed: () => notifier.undoStudent(student),
+          onPressed: () => notifier.undoStudent(),
         ),
       ),
-    );
+    ).closed.then((value) {
+      if (value != SnackBarClosedReason.action) {
+        provideScope.read(studentsProvider.notifier).removeFirebase();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final students = ref.watch(studentsProvider);
+    final studentsState = ref.watch(studentsProvider);
+
+    if (studentsState.isRequestingToServer) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (studentsState.errorOccured != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              studentsState.errorOccured!,
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       body: ListView.builder(
-        itemCount: students.length,
+        itemCount: studentsState.studentsList.length,
         itemBuilder: (context, index) {
-          final student = students[index];
+          final student = studentsState.studentsList[index];
           return Dismissible(
             key: ValueKey(student.id),
             direction: DismissDirection.endToStart,
@@ -66,12 +79,12 @@ class StudentsScreen extends ConsumerWidget {
               ),
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 20),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.delete_forever, color: Colors.white, size: 28),
-                  const SizedBox(width: 10),
-                  const Text(
+                  SizedBox(width: 10),
+                  Text(
                     'Видалити',
                     style: TextStyle(
                       color: Colors.white,
@@ -82,9 +95,9 @@ class StudentsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            onDismissed: (_) => _deleteStudent(context, ref, student),
+            onDismissed: (_) => _deleteStudent(context, ref, student, index),
             child: InkWell(
-              onTap: () => _showNewStudentForm(context, ref, student: student),
+              onTap: () => _showNewStudentForm(context, ref, index: index),
               child: StudentItem(student: student),
             ),
           );

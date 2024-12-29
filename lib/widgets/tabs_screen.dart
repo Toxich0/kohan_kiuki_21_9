@@ -12,14 +12,14 @@ class TabsScreen extends StatefulWidget {
 class _TabsScreenState extends State<TabsScreen> {
   int _selectedIndex = 0;
 
-  final List<String> _titles = ['Факультети', 'Студенти'];
+  final List<String> _names = ['Факультети', 'Студенти'];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _titles[_selectedIndex],
+          _names[_selectedIndex],
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -32,8 +32,8 @@ class _TabsScreenState extends State<TabsScreen> {
         ),
       ),
       body: _selectedIndex == 0
-          ? const DepartmentsScreen() // Здесь не передаем параметры.
-          : const StudentsScreen(),    // Здесь тоже не передаем параметры.
+          ? const DepartmentsScreen() 
+          : const StudentsScreen(), 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
